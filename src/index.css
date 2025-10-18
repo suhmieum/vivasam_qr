@@ -1,0 +1,192 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    font-family: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto, "Helvetica Neue", "Segoe UI", sans-serif;
+  }
+
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background-color: #e9e1d9;
+  }
+}
+
+@layer components {
+  /* Buttons */
+  .btn {
+    @apply inline-flex items-center justify-center font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  .btn-primary {
+    @apply btn px-6 py-3 bg-[#FF8800] hover:bg-[#e67700] text-white rounded-lg shadow-sm hover:shadow;
+  }
+
+  .btn-secondary {
+    @apply btn px-6 py-3 bg-white hover:bg-[#f5f0eb] text-gray-700 border border-[#d4c4b4] rounded-lg;
+  }
+
+  .btn-danger {
+    @apply btn px-4 py-2 text-red-600 hover:bg-red-50 rounded-lg;
+  }
+
+  .btn-success {
+    @apply btn px-4 py-2 bg-[#FF8800] hover:bg-[#e67700] text-white rounded-lg shadow-sm;
+  }
+
+  /* Inputs */
+  .input-base {
+    @apply w-full px-4 py-3 bg-white border border-gray-300 rounded-lg outline-none transition-all duration-200;
+  }
+
+  .input-base:focus {
+    @apply border-[#ff7031] ring-2 ring-[#ff7031]/20;
+  }
+
+  /* Cards */
+  .card {
+    @apply bg-white rounded-lg border border-gray-200 transition-shadow duration-200;
+  }
+
+  .card-hover {
+    @apply card hover:shadow-md;
+  }
+
+  /* Badges */
+  .badge {
+    @apply inline-flex items-center px-3 py-1 text-sm font-medium rounded-full;
+  }
+
+  .badge-active {
+    @apply badge bg-[#fff5f0] text-[#ff7031] border border-[#ffcdb8];
+  }
+
+  .badge-closed {
+    @apply badge bg-gray-100 text-gray-600 border border-gray-200;
+  }
+
+  .badge-type-text {
+    @apply badge bg-blue-50 text-blue-700 border border-blue-200;
+  }
+
+  .badge-type-poll {
+    @apply badge bg-purple-50 text-purple-700 border border-purple-200;
+  }
+
+  /* Layout */
+  .container-main {
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+
+  .section-header {
+    @apply bg-white border-b border-gray-200;
+  }
+
+  /* Custom Radio & Checkbox */
+  .radio-card {
+    @apply relative flex items-center p-4 bg-white border-2 border-gray-200 rounded-lg cursor-pointer transition-all duration-200;
+  }
+
+  .radio-card:hover {
+    @apply border-gray-300;
+  }
+
+  .radio-card.selected {
+    @apply border-[#ff7031] bg-[#fff5f0]/50;
+  }
+
+  .checkbox-custom {
+    @apply w-5 h-5 rounded border-2 border-gray-300 transition-all duration-200 cursor-pointer;
+  }
+
+  .checkbox-custom:checked {
+    @apply bg-[#ff7031] border-[#ff7031];
+  }
+
+  /* Select dropdown */
+  .select-custom {
+    @apply input-base appearance-none bg-white bg-no-repeat bg-right pr-10;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23666'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+    background-size: 1.5rem;
+    background-position: right 0.5rem center;
+  }
+
+  /* Textarea */
+  .textarea-base {
+    @apply input-base resize-none;
+  }
+
+  /* Animations */
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes slideUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .animate-fadeIn {
+    animation: fadeIn 0.2s ease-out;
+  }
+
+  .animate-slideUp {
+    animation: slideUp 0.3s ease-out;
+  }
+
+  @keyframes gaugeGrow {
+    from {
+      width: 0%;
+    }
+  }
+
+  @keyframes hop {
+    0%, 100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-10px);
+    }
+  }
+
+  @keyframes pulse-glow {
+    0%, 100% {
+      box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4);
+    }
+    50% {
+      box-shadow: 0 0 0 8px rgba(59, 130, 246, 0);
+    }
+  }
+
+  @keyframes countUp {
+    from {
+      opacity: 0;
+      transform: scale(0.8);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  .poll-bar-animate {
+    animation: gaugeGrow 0.8s ease-out;
+  }
+
+  .poll-bar-animate:hover {
+    filter: brightness(1.1);
+  }
+}
