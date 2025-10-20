@@ -30,12 +30,12 @@ export default function QRCodeDisplay({ url, questionContent }: QRCodeDisplayPro
         >
           <QRCodeSVG value={url} size={240} level="H" includeMargin={true} />
         </button>
-        <p className="text-xs text-gray-500 text-center">클릭하면 크게 보기</p>
+        <p className="text-xs text-gray-500 text-center">QR 코드 클릭 시 크게 보기</p>
 
         <button
           onClick={handleCopy}
           className={`w-full px-4 py-2.5 rounded-lg font-medium transition flex items-center justify-center gap-2 ${
-            copied ? 'bg-emerald-600 text-white' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
+            copied ? 'bg-emerald-600 text-white' : 'bg-gray-600 hover:bg-gray-700 text-white'
           }`}
         >
           {copied ? (

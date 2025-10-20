@@ -61,15 +61,6 @@ export default function NewQuestionPage() {
       return;
     }
 
-    if (content.length > 100) {
-      setAlertModal({
-        isOpen: true,
-        message: '질문은 최대 100자까지 입력 가능합니다.',
-        type: 'warning',
-      });
-      return;
-    }
-
     if (type === 'poll') {
       const validOptions = pollOptions.filter((opt) => opt.trim().length > 0);
       if (validOptions.length < 2) {
@@ -85,79 +76,7 @@ export default function NewQuestionPage() {
     setLoading(true);
 
     try {
-      // 활성 질문이 있는지 확인
-      const { data: activeQuestions, error: checkError } = await supabase
-        .from('questions')
-        .select('id, content')
-        .eq('teacher_id', teacher.id)
-        .eq('status', 'active');
-
-      if (checkError) throw checkError;
-
-      if (activeQuestions && activeQuestions.length > 0) {
-        setLoading(false);
-        setConfirmModal({
-          isOpen: true,
-          title: '활성 질문 종료',
-          message: `현재 활성 중인 질문 "${activeQuestions[0].content}"이(가) 자동으로 종료됩니다. 계속하시겠습니까?`,
-          type: 'warning',
-          onConfirm: async () => {
-            setConfirmModal({ ...confirmModal, isOpen: false });
-            await createQuestionWithCloseActive(activeQuestions[0].id);
-          },
-        });
-        return;
-      }
-
       // 질문 생성
-      const questionData = {
-        teacher_id: teacher.id,
-        teacher_name: teacher.name,
-        type,
-        content: content.trim(),
-        status: 'active',
-        ...(type === 'poll' && {
-          poll_options: pollOptions.filter((opt) => opt.trim().length > 0),
-          allow_multiple: allowMultiple,
-          is_anonymous: isAnonymous,
-        }),
-      };
-
-      const { data, error } = await supabase
-        .from('questions')
-        .insert([questionData])
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      navigate(`/teacher/question/${data.id}`);
-    } catch (error) {
-      console.error('Failed to create question:', error);
-      setAlertModal({
-        isOpen: true,
-        title: '생성 실패',
-        message: '질문 생성에 실패했습니다.',
-        type: 'error',
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const createQuestionWithCloseActive = async (activeQuestionId: string) => {
-    if (!teacher) return;
-
-    setLoading(true);
-
-    try {
-      // 1. 기존 활성 질문 종료
-      await supabase
-        .from('questions')
-        .update({ status: 'closed', closed_at: new Date().toISOString() })
-        .eq('id', activeQuestionId);
-
-      // 2. 새 질문 생성
       const questionData = {
         teacher_id: teacher.id,
         teacher_name: teacher.name,
@@ -212,12 +131,17 @@ export default function NewQuestionPage() {
         onCancel={() => setConfirmModal({ ...confirmModal, isOpen: false })}
       />
 
-      <header className="section-header">
-        <div className="container-main py-4">
+      <header className="bg-white border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 py-3">
           <div className="flex items-center justify-between">
-            <h1 className="text-xl font-bold text-gray-900">새로 의견 받기</h1>
-            <button onClick={() => navigate('/teacher/dashboard')} className="text-sm text-gray-600 hover:text-gray-900">
-              취소
+            <button
+              onClick={() => navigate('/teacher/dashboard')}
+              className="text-base text-gray-600 hover:text-gray-900 transition flex items-center gap-1"
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+              활동 내역
             </button>
           </div>
         </div>
@@ -226,6 +150,11 @@ export default function NewQuestionPage() {
       <main className="container-main py-6">
         <div className="max-w-3xl mx-auto">
           <form onSubmit={handleSubmit} className="card p-6 space-y-6">
+          {/* 페이지 제목 */}
+          <div className="pb-4 border-b border-gray-200">
+            <h1 className="text-2xl font-bold text-gray-900">새로 의견 받기</h1>
+          </div>
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-3">질문 유형</label>
             <div className="grid grid-cols-2 gap-3">

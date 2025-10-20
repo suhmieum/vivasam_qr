@@ -182,6 +182,38 @@
     }
   }
 
+  @keyframes wordPop {
+    0% {
+      opacity: 0;
+      transform: scale(0.5) rotate(-5deg);
+    }
+    60% {
+      transform: scale(1.1) rotate(2deg);
+    }
+    100% {
+      opacity: 1;
+      transform: scale(1) rotate(0deg);
+    }
+  }
+
+  @keyframes pulseSubtle {
+    0%, 100% {
+      transform: scale(1);
+    }
+    50% {
+      transform: scale(1.02);
+    }
+  }
+
+  .animate-wordPop {
+    animation: wordPop 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
+    opacity: 0;
+  }
+
+  .animate-pulse-gentle {
+    animation: pulseSubtle 4s ease-in-out infinite;
+  }
+
   .poll-bar-animate {
     animation: gaugeGrow 0.8s ease-out;
   }

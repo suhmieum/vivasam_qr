@@ -37,7 +37,9 @@ CREATE TABLE responses (
   text_answer TEXT CHECK (text_answer IS NULL OR char_length(text_answer) <= 100),
   drawing_data TEXT,
   poll_answer TEXT[],
-  submitted_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
+  is_in_progress BOOLEAN DEFAULT false,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
+  submitted_at TIMESTAMP WITH TIME ZONE,
   UNIQUE(question_id, student_number, nickname)
 );
 
@@ -76,6 +78,11 @@ CREATE POLICY "Responses are viewable by everyone"
 
 CREATE POLICY "Students can insert responses"
   ON responses FOR INSERT
+  WITH CHECK (true);
+
+CREATE POLICY "Students can update responses"
+  ON responses FOR UPDATE
+  USING (true)
   WITH CHECK (true);
 
 CREATE POLICY "Anyone can delete responses"

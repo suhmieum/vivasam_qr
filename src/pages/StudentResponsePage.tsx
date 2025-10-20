@@ -22,6 +22,7 @@ export default function StudentResponsePage() {
   const [selectedOptions, setSelectedOptions] = useState<string[]>([]);
   const [drawingData, setDrawingData] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [isDrawingExpanded, setIsDrawingExpanded] = useState(false);
 
   // Modal state
   const [alertModal, setAlertModal] = useState<{ isOpen: boolean; message: string; title?: string; type?: 'info' | 'success' | 'error' | 'warning' }>({ isOpen: false, message: '' });
@@ -239,7 +240,7 @@ export default function StudentResponsePage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-[#e9e1d9] flex items-center justify-center p-4">
-        <LoadingSpinner size="lg" message="질문을 불러오는 중..." />
+        <LoadingSpinner size="lg" message="불러오는 중..." />
       </div>
     );
   }
@@ -337,7 +338,7 @@ export default function StudentResponsePage() {
                       id="nickname"
                       value={nickname}
                       onChange={(e) => setNickname(e.target.value)}
-                      placeholder="예: 김철수"
+                      placeholder="예: 홍길동"
                       maxLength={10}
                       className="input-base"
                       required
@@ -359,7 +360,7 @@ export default function StudentResponsePage() {
 
       {/* Step 2: Answer Form */}
       {step === 'answer' && (
-        <div className="max-w-2xl mx-auto px-4 py-4">
+        <div className="max-w-2xl mx-auto px-4 py-4 pb-8">
           <div className="card p-6 shadow-sm">
             <div className="mb-4 pb-4 border-b border-gray-200">
               <div className="text-sm text-gray-600">
@@ -369,12 +370,12 @@ export default function StudentResponsePage() {
               </div>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-5">
+            <form onSubmit={handleSubmit} className="space-y-5 pb-4">
               {question.type === 'text' && (
                 <>
                   <div>
                     <label htmlFor="answer" className="block text-sm font-medium text-gray-700 mb-2">
-                      텍스트 답변 (선택) <span className="text-gray-500">({textAnswer.length}/100자)</span>
+                      텍스트 답변 <span className="text-gray-500">({textAnswer.length}/100자)</span>
                     </label>
                     <textarea
                       id="answer"
@@ -387,8 +388,26 @@ export default function StudentResponsePage() {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">그림 그리기 (선택)</label>
-                    <DrawingCanvas onDrawingChange={setDrawingData} />
+                    <button
+                      type="button"
+                      onClick={() => setIsDrawingExpanded(!isDrawingExpanded)}
+                      className="w-full flex items-center justify-between text-sm font-medium text-gray-700 mb-2 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition"
+                    >
+                      <span>그림 그리기</span>
+                      <svg
+                        className={`w-5 h-5 transition-transform duration-200 ${isDrawingExpanded ? 'rotate-180' : ''}`}
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </button>
+                    {isDrawingExpanded && (
+                      <div className="mt-2">
+                        <DrawingCanvas onDrawingChange={setDrawingData} />
+                      </div>
+                    )}
                   </div>
                 </>
               )}

@@ -8,7 +8,7 @@ import AlertModal from '../components/AlertModal';
 import ConfirmModal from '../components/ConfirmModal';
 import LoadingSpinner from '../components/LoadingSpinner';
 import Toast from '../components/Toast';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import WordCloudModal from '../components/WordCloudModal';
 
 export default function QuestionDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -23,6 +23,7 @@ export default function QuestionDetailPage() {
   const [confirmModal, setConfirmModal] = useState<{ isOpen: boolean; message: string; title?: string; type?: 'danger' | 'warning' | 'info'; onConfirm: () => void }>({ isOpen: false, message: '', onConfirm: () => {} });
   const [toast, setToast] = useState<{ isOpen: boolean; message: string; type?: 'success' | 'info' | 'error' }>({ isOpen: false, message: '' });
   const [showStudentListModal, setShowStudentListModal] = useState(false);
+  const [showWordCloudModal, setShowWordCloudModal] = useState(false);
 
   // Table sorting state
   const [sortField, setSortField] = useState<'number' | 'name' | 'status' | 'time'>('number');
@@ -92,8 +93,23 @@ export default function QuestionDetailPage() {
           filter: `question_id=eq.${id}`,
         },
         (payload) => {
-          console.log('✅ 새 응답 수신:', payload.new);
+          console.log('✅ 새 응답 INSERT:', payload.new);
           setResponses((prev) => [payload.new as Response, ...prev]);
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'responses',
+          filter: `question_id=eq.${id}`,
+        },
+        (payload) => {
+          console.log('🔄 응답 UPDATE:', payload.new);
+          setResponses((prev) =>
+            prev.map((r) => r.id === payload.new.id ? payload.new as Response : r)
+          );
         }
       )
       .on(
@@ -370,15 +386,12 @@ export default function QuestionDetailPage() {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-
-    // Show success toast
-    setToast({ isOpen: true, message: 'CSV 파일이 다운로드되었습니다', type: 'success' });
   };
 
   if (loading) {
     return (
       <div className="min-h-screen bg-[#e9e1d9] flex items-center justify-center">
-        <LoadingSpinner size="lg" message="질문을 불러오는 중..." />
+        <LoadingSpinner size="lg" message="불러오는 중..." />
       </div>
     );
   }
@@ -408,6 +421,19 @@ export default function QuestionDetailPage() {
         message={toast.message}
         type={toast.type}
         onClose={() => setToast({ ...toast, isOpen: false })}
+      />
+      <WordCloudModal
+        isOpen={showWordCloudModal}
+        onClose={() => setShowWordCloudModal(false)}
+        responses={responses
+          .filter(r => !r.is_in_progress && r.text_answer)
+          .map(r => ({
+            text: r.text_answer || '',
+            studentNumber: r.student_number,
+            nickname: r.nickname,
+          }))}
+        questionContent={question.content}
+        isAnonymous={question.is_anonymous || false}
       />
 
       {/* Student List Modal */}
@@ -555,7 +581,7 @@ export default function QuestionDetailPage() {
           <div className="flex items-center justify-between mb-3">
             <button
               onClick={() => navigate('/teacher/dashboard')}
-              className="text-sm text-gray-600 hover:text-gray-900 transition flex items-center gap-1 pt-0.5"
+              className="text-base text-gray-600 hover:text-gray-900 transition flex items-center gap-1 pt-1"
             >
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -563,24 +589,24 @@ export default function QuestionDetailPage() {
               활동 내역
             </button>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 pt-1">
               {responses.length > 0 && (
                 <>
                   <button
                     onClick={() => setShowStudentListModal(true)}
-                    className="px-3 py-1.5 text-xs bg-[#ff7031] hover:bg-[#e65a20] text-white rounded-md transition flex items-center gap-1.5 font-semibold"
+                    className="px-3 py-2 text-xs bg-[#ff7031] hover:bg-[#e65a20] text-white rounded-md transition flex items-center gap-1.5 font-semibold"
                   >
                     <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                     </svg>
                     학생 목록
-                    <span className="ml-0.5 px-1.5 py-0.5 bg-[#e65a20] rounded text-xs font-bold">
+                    <span className="ml-0.5 px-1.5 py-px bg-[#e65a20] rounded text-xs font-bold">
                       {responses.length}
                     </span>
                   </button>
                   <button
                     onClick={downloadCSV}
-                    className="px-3 py-1.5 text-xs bg-[#ff7031] hover:bg-[#e65a20] text-white rounded-md transition flex items-center gap-1.5 font-semibold"
+                    className="px-3 py-2 text-xs bg-[#ff7031] hover:bg-[#e65a20] text-white rounded-md transition flex items-center gap-1.5 font-semibold"
                   >
                     <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
@@ -597,23 +623,17 @@ export default function QuestionDetailPage() {
 
       {/* Main Content: 3:7 Layout */}
       <main className="max-w-7xl mx-auto px-4 py-6">
-        <div className="flex gap-6 h-[calc(100vh-200px)]">
-          {/* Left Panel - QR Code (Collapsible) */}
-          <div
-            className={`bg-white rounded-lg shadow flex flex-col relative transition-all duration-500 ease-in-out ${
-              isQRPanelCollapsed ? 'w-12 overflow-hidden' : 'w-[30%] overflow-visible'
+        <div className="flex gap-6 h-[calc(100vh-200px)] relative">
+          {/* Collapse/Expand Button - Outside the panel */}
+          <button
+            onClick={() => setIsQRPanelCollapsed(!isQRPanelCollapsed)}
+            className={`absolute top-5 z-20 w-10 h-10 bg-gradient-to-br from-[#FF8800] to-[#e67700] text-white rounded-lg shadow-xl border-2 border-white flex items-center justify-center hover:scale-110 hover:shadow-2xl transition-all duration-300 ${
+              isQRPanelCollapsed ? 'left-[22px]' : 'left-[calc(30%-28px)]'
             }`}
+            title={isQRPanelCollapsed ? 'QR 펼치기' : 'QR 접기'}
           >
-            {/* Collapse/Expand Button */}
-            <button
-              onClick={() => setIsQRPanelCollapsed(!isQRPanelCollapsed)}
-              className={`absolute top-6 z-10 w-10 h-10 bg-gradient-to-br from-[#FF8800] to-[#e67700] text-white rounded-lg shadow-lg border-2 border-white flex items-center justify-center hover:scale-110 hover:shadow-xl transition-all duration-300 ${
-                isQRPanelCollapsed ? 'left-1/2 -translate-x-1/2' : '-right-5'
-              }`}
-              title={isQRPanelCollapsed ? 'QR 펼치기' : 'QR 접기'}
-            >
               <svg
-                className={`w-5 h-5 transition-transform duration-500 ${isQRPanelCollapsed ? 'rotate-180' : ''}`}
+                className={`w-5 h-5 transition-transform duration-300 ${isQRPanelCollapsed ? 'rotate-180' : ''}`}
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -621,94 +641,107 @@ export default function QuestionDetailPage() {
               >
                 <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
               </svg>
-            </button>
+          </button>
 
+          {/* Left Panel - QR Code (Collapsible) */}
+          <div
+            className={`bg-white rounded-lg shadow flex flex-col relative overflow-hidden transition-all duration-300 ease-in-out ${
+              isQRPanelCollapsed ? 'w-12' : 'w-[30%]'
+            }`}
+          >
             {/* Collapsed State - Vertical Text/Icon */}
-            <div
-              className={`flex flex-col items-center justify-center h-full py-8 space-y-4 transition-all duration-500 ease-in-out ${
-                isQRPanelCollapsed ? 'opacity-100' : 'opacity-0 absolute pointer-events-none'
-              }`}
-            >
-              <svg className="w-6 h-6 text-[#FF8800]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
-              </svg>
-              <div className="text-[#FF8800] text-xs font-bold writing-mode-vertical-rl" style={{ writingMode: 'vertical-rl' }}>
-                QR
+            {isQRPanelCollapsed && (
+              <div className="flex flex-col items-center justify-center h-full py-8 space-y-4">
+                <svg className="w-6 h-6 text-[#FF8800]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
+                </svg>
+                <div className="text-[#FF8800] text-xs font-bold writing-mode-vertical-rl" style={{ writingMode: 'vertical-rl' }}>
+                  QR
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Expanded Content */}
-            <div
-              className={`p-6 flex flex-col flex-1 transition-all duration-500 ease-in-out ${
-                isQRPanelCollapsed
-                  ? 'opacity-0 pointer-events-none absolute'
-                  : 'opacity-100'
-              }`}
-            >
+            {!isQRPanelCollapsed && (
+              <div className="p-6 flex flex-col flex-1">
                 {/* QR Code Area with Dimmed Overlay when Closed */}
                 <div className="relative flex-1 flex flex-col items-center justify-center mb-3">
-              <QRCodeDisplay url={getStudentUrl()} questionContent={question.content} />
+                  <QRCodeDisplay url={getStudentUrl()} questionContent={question.content} />
 
-              {question.status === 'closed' && (
-                <div className="absolute inset-0 bg-gray-900 bg-opacity-60 rounded-lg flex items-center justify-center backdrop-blur-sm">
-                  <div className="text-center p-6">
-                    <svg className="w-16 h-16 text-white mx-auto mb-4 opacity-80" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                    </svg>
-                    <p className="text-white font-medium mb-4">종료된 질문입니다</p>
-                    <button
-                      onClick={handleReopenQuestion}
-                      className="btn-success text-sm py-2.5 px-5 shadow-lg hover:shadow-xl"
-                    >
-                      다시 활성화
-                    </button>
-                  </div>
-                </div>
-              )}
+                  {question.status === 'closed' && (
+                    <div className="absolute inset-0 bg-gray-900 bg-opacity-60 rounded-lg flex items-center justify-center backdrop-blur-sm">
+                      <div className="text-center p-6">
+                        <svg className="w-16 h-16 text-white mx-auto mb-4 opacity-80" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                        </svg>
+                        <p className="text-white font-medium mb-4">종료된 질문입니다</p>
+                        <button
+                          onClick={handleReopenQuestion}
+                          className="btn-success text-sm py-2.5 px-5 shadow-lg hover:shadow-xl"
+                        >
+                          다시 활성화
+                        </button>
+                      </div>
+                    </div>
+                  )}
 
-              {/* Student Instructions */}
-              {question.status === 'active' && (
-                <div className="mt-4 w-full">
-                  <p className="text-lg font-bold text-gray-800 text-center mb-3">
-                    스마트폰 카메라로 스캔하세요
-                  </p>
-                  <div className="space-y-1.5 text-sm text-gray-600">
-                    <p className="flex items-start gap-2">
-                      <span className="font-bold text-gray-800 flex-shrink-0">1.</span>
-                      <span>카메라 앱 열기</span>
-                    </p>
-                    <p className="flex items-start gap-2">
-                      <span className="font-bold text-gray-800 flex-shrink-0">2.</span>
-                      <span>QR 코드에 카메라 맞추기</span>
-                    </p>
-                    <p className="flex items-start gap-2">
-                      <span className="font-bold text-gray-800 flex-shrink-0">3.</span>
-                      <span>나타나는 링크 누르기</span>
-                    </p>
-                  </div>
+                  {/* Student Instructions */}
+                  {question.status === 'active' && (
+                    <div className="mt-8 w-full bg-gray-100 rounded-lg p-4">
+                      <p className="text-lg font-bold text-gray-800 text-center mb-3">
+                        스마트폰 카메라로 스캔하세요
+                      </p>
+                      <div className="space-y-1.5 text-sm text-gray-600">
+                        <p className="flex items-start gap-2">
+                          <span className="font-bold text-gray-800 flex-shrink-0">1.</span>
+                          <span>카메라 앱 열기</span>
+                        </p>
+                        <p className="flex items-start gap-2">
+                          <span className="font-bold text-gray-800 flex-shrink-0">2.</span>
+                          <span>QR 코드에 카메라 맞추기</span>
+                        </p>
+                        <p className="flex items-start gap-2">
+                          <span className="font-bold text-gray-800 flex-shrink-0">3.</span>
+                          <span>나타나는 링크 누르기</span>
+                        </p>
+                      </div>
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
               </div>
+            )}
           </div>
 
           {/* Right Panel - Responses (Flexible Width) */}
-          <div className={`bg-white rounded-lg shadow p-6 overflow-y-auto transition-all duration-500 ease-in-out ${
+          <div className={`bg-white rounded-lg shadow p-6 overflow-y-auto transition-all duration-300 ease-in-out ${
             isQRPanelCollapsed ? 'w-[calc(100%-72px)]' : 'w-[70%]'
           }`}>
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-bold text-gray-800">실시간 응답</h3>
-              {question.status === 'active' && (
-                <button
-                  onClick={handleCloseQuestion}
-                  className="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg text-sm font-medium transition flex items-center gap-2"
-                >
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                  의견 받기 종료
-                </button>
-              )}
+              <div className="flex items-center gap-2">
+                {question.type === 'text' && responses.filter(r => !r.is_in_progress && r.text_answer).length > 0 && (
+                  <button
+                    onClick={() => setShowWordCloudModal(true)}
+                    className="px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded-lg text-sm font-medium transition flex items-center gap-2"
+                  >
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+                    </svg>
+                    답변 모아보기
+                  </button>
+                )}
+                {question.status === 'active' && (
+                  <button
+                    onClick={handleCloseQuestion}
+                    className="px-4 py-2 bg-gray-400 hover:bg-gray-500 text-white rounded-lg text-sm font-medium transition flex items-center gap-2"
+                  >
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                    의견 받기 종료
+                  </button>
+                )}
+              </div>
             </div>
 
             {/* Question Content */}
@@ -787,7 +820,7 @@ export default function QuestionDetailPage() {
 
             {/* Responses List */}
             {responses.filter(r => !r.is_in_progress).length === 0 ? (
-              <div className="text-center py-16">
+              <div className="text-center py-24">
                 <img
                   src="/question.png"
                   alt="응답 없음"
@@ -802,55 +835,45 @@ export default function QuestionDetailPage() {
                     key={response.id}
                     className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition"
                   >
-                    <div className="flex items-start justify-between mb-2">
+                    {/* Header: 학생 정보 + 시간 + 삭제 */}
+                    <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center gap-2">
                         {!question.is_anonymous && (
-                          <>
-                            <span className="font-medium text-gray-800">
-                              {response.student_number}번
-                            </span>
+                          <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-gray-100 rounded-full text-sm">
+                            <span className="font-semibold text-gray-700">{response.student_number}번</span>
                             <span className="text-gray-600">{response.nickname}</span>
-                          </>
+                          </span>
                         )}
                         {question.is_anonymous && (
-                          <span className="text-gray-600">익명</span>
+                          <span className="inline-flex items-center px-3 py-1 bg-gray-100 rounded-full text-sm text-gray-600">익명</span>
                         )}
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs text-gray-500">
+                        <span className="text-xs text-gray-400">
                           {formatDate(response.submitted_at)}
                         </span>
-                        <button
-                          onClick={() => handleDeleteResponse(response.id)}
-                          className="text-xs text-red-600 hover:text-red-700"
-                        >
-                          삭제
-                        </button>
                       </div>
+                      <button
+                        onClick={() => handleDeleteResponse(response.id)}
+                        className="text-xs text-red-600 hover:text-red-700 font-medium"
+                      >
+                        삭제
+                      </button>
                     </div>
 
                     {/* Text Answer */}
                     {response.text_answer && (
-                      <div className="text-gray-700 mb-2">{response.text_answer}</div>
+                      <div className="text-gray-900 text-base font-semibold leading-relaxed">{response.text_answer}</div>
                     )}
 
                     {/* Poll Answer */}
                     {response.poll_answer && (
-                      <div className="flex flex-wrap gap-2">
-                        {response.poll_answer.map((answer, idx) => (
-                          <span
-                            key={idx}
-                            className="px-4 py-2 bg-[#ff7031] text-white rounded-lg text-sm font-medium shadow-sm"
-                          >
-                            {answer}
-                          </span>
-                        ))}
+                      <div className="text-gray-900 text-base font-semibold leading-relaxed">
+                        {response.poll_answer.join(', ')}
                       </div>
                     )}
 
                     {/* Drawing */}
                     {response.drawing_data && (
-                      <div className="mt-2">
+                      <div className="mt-3">
                         <img
                           src={response.drawing_data}
                           alt="학생 그림"

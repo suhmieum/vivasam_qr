@@ -228,9 +228,20 @@ export default function DashboardPage() {
         title: '새로 의견 받기',
         message: `현재 진행 중인 의견 받기 "${currentActiveQuestion.content}"이(가) 자동으로 종료됩니다. 계속하시겠습니까?`,
         type: 'warning',
-        onConfirm: () => {
-          setConfirmModal({ ...confirmModal, isOpen: false });
-          navigate('/teacher/question/new');
+        onConfirm: async () => {
+          try {
+            // 확인 버튼 누르는 순간 기존 질문 종료
+            await supabase
+              .from('questions')
+              .update({ status: 'closed', closed_at: new Date().toISOString() })
+              .eq('id', currentActiveQuestion.id);
+
+            setConfirmModal({ ...confirmModal, isOpen: false });
+            navigate('/teacher/question/new');
+          } catch (error) {
+            console.error('Failed to close active question:', error);
+            setAlertModal({ isOpen: true, message: '질문 종료에 실패했습니다.', type: 'error' });
+          }
         },
       });
     } else {
@@ -295,8 +306,6 @@ export default function DashboardPage() {
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-
-      setToast({ isOpen: true, message: 'CSV 파일이 다운로드되었습니다', type: 'success' });
     } catch (error) {
       console.error('Failed to download CSV:', error);
       setToast({ isOpen: true, message: 'CSV 다운로드에 실패했습니다', type: 'error' });
@@ -341,8 +350,6 @@ export default function DashboardPage() {
 
       return sortDirection === 'asc' ? compareValue : -compareValue;
     });
-
-  const activeQuestion = questions.find((q) => q.status === 'active');
 
   // 페이지네이션 계산
   const totalPages = Math.ceil(filteredQuestions.length / itemsPerPage);
@@ -482,7 +489,7 @@ export default function DashboardPage() {
               <>
                 <tbody>
                   <tr>
-                    <td colSpan={7} className="text-center py-24">
+                    <td colSpan={7} className="text-center py-40">
                       <LoadingSpinner size="lg" message="불러오는 중..." />
                     </td>
                   </tr>
@@ -615,7 +622,7 @@ export default function DashboardPage() {
                       )}
                     </div>
                   </th>
-                  <th className="px-6 py-4 text-right text-sm font-bold text-gray-700 w-24">
+                  <th className="pl-6 pr-8 py-4 text-right text-sm font-bold text-gray-700 w-24">
                     작업
                   </th>
                 </tr>
