@@ -33,7 +33,14 @@
       "Bash(dir /b \"c:\\Users\\mieum\\Downloads\\qr\")",
       "Bash(wc -l \"c:\\Users\\mieum\\Downloads\\qr\\student-feedback\\src\"/**/*.{ts,tsx})",
       "Bash(git add:*)",
-      "Bash(git commit -m \"$(cat <<''EOF''\nInitial commit: Vivasam QR - Real-time Student Feedback System\n\n- Complete React + TypeScript application with Vite\n- QR code-based real-time student response collection\n- Teacher dashboard with question management\n- Student response pages (multiple choice, text, drawing)\n- Real-time visualization with charts and word clouds\n- Mobile-optimized drawing canvas\n- Supabase backend integration\n- Project documentation and setup instructions\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")"
+      "Bash(git commit -m \"$(cat <<''EOF''\nInitial commit: Vivasam QR - Real-time Student Feedback System\n\n- Complete React + TypeScript application with Vite\n- QR code-based real-time student response collection\n- Teacher dashboard with question management\n- Student response pages (multiple choice, text, drawing)\n- Real-time visualization with charts and word clouds\n- Mobile-optimized drawing canvas\n- Supabase backend integration\n- Project documentation and setup instructions\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
+      "Bash(gh:*)",
+      "Bash(git remote set-url:*)",
+      "Bash(git credential-manager:*)",
+      "Bash(git fetch:*)",
+      "Bash(git pull:*)",
+      "Bash(git checkout:*)",
+      "Bash(git commit:*)"
     ],
     "deny": [],
     "ask": []

@@ -1,142 +1,167 @@
-# Vivasam QR - Real-time Student Feedback System
+# 학생 의견 받기
 
-QR 코드 기반 실시간 학생 응답 수집 시스템입니다. 교사는 질문을 생성하고 QR 코드를 통해 학생들의 응답을 실시간으로 수집하고 시각화할 수 있습니다.
+실시간 수업 참여 플랫폼 - 교사들이 쉽고 빠르게 질문을 생성하고, 학생들이 실시간으로 참여할 수 있는 서비스
 
-## Features
+## 주요 기능
 
 ### 교사 기능
-- **질문 관리**: 객관식, 주관식, 그림 그리기 타입의 질문 생성
-- **실시간 대시보드**: 질문 목록 및 응답 현황 실시간 모니터링
-- **QR 코드 생성**: 각 질문마다 고유한 QR 코드 자동 생성
-- **응답 시각화**:
-  - 객관식: 실시간 차트
-  - 주관식: 워드 클라우드
-  - 그림: 학생별 그림 갤러리
-- **질문 상태 관리**: Active/Closed 상태 토글
+- 간단한 로그인 (테스트용)
+- 질문 생성 (주관식/투표)
+- QR 코드 자동 생성 및 링크 공유
+- 실시간 응답 확인 (3:7 레이아웃)
+- 투표 결과 차트 시각화
+- 응답 개별 삭제
+- 질문 종료/재활성화
+- 질문 히스토리 관리
 
 ### 학생 기능
-- **간편한 접근**: QR 코드 스캔만으로 즉시 응답 가능
-- **다양한 응답 타입**:
-  - 객관식 선택
-  - 텍스트 입력
-  - 캔버스 드로잉 (모바일 최적화)
-- **실시간 피드백**: 응답 즉시 반영
+- QR 코드 스캔으로 빠른 접근
+- 모바일 친화적인 UI
+- 텍스트 답변 작성 (최대 100자)
+- 그림 그리기 (캔버스)
+- 투표 참여 (단일/복수 선택)
+- 익명 응답 지원
+- 중복 제출 방지
 
-## Tech Stack
+## 기술 스택
 
-- **Frontend**: React 19, TypeScript, Vite
-- **Styling**: TailwindCSS
+- **Frontend**: React 18, TypeScript, Tailwind CSS
+- **Router**: React Router v6
 - **State Management**: Zustand
-- **Backend**: Supabase (PostgreSQL, Realtime)
-- **Routing**: React Router v7
-- **Charts**: Recharts
+- **Database**: Supabase (PostgreSQL + Realtime)
 - **QR Code**: qrcode.react
+- **Charts**: Recharts
 
-## Project Structure
+## 설치 및 실행
+
+### 1. 의존성 설치
+
+```bash
+cd student-feedback
+npm install
+```
+
+### 2. Supabase 설정
+
+[SUPABASE_SETUP.md](./SUPABASE_SETUP.md) 문서를 참고하여 Supabase 프로젝트를 설정합니다.
+
+### 3. 환경 변수 설정
+
+`.env.example`을 `.env`로 복사하고 Supabase 정보를 입력합니다:
+
+```bash
+cp .env.example .env
+```
+
+`.env` 파일 내용:
+```env
+VITE_SUPABASE_URL=your_supabase_url_here
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key_here
+```
+
+### 4. 개발 서버 실행
+
+```bash
+npm run dev
+```
+
+브라우저에서 `http://localhost:5173`로 접속합니다.
+
+## 사용 방법
+
+### 교사
+
+1. **로그인**: 이름만 입력하여 로그인
+2. **질문 생성**: "새 질문 만들기" 버튼 클릭
+   - 주관식: 텍스트 + 그림 응답 가능
+   - 투표: 최대 5개 항목, 복수선택/익명 설정 가능
+3. **QR 공유**: 생성된 QR 코드를 화면에 띄워 학생들에게 공유
+4. **실시간 확인**: 좌측에 QR 코드, 우측에 실시간 응답 표시
+5. **질문 종료**: 응답 받기 완료 후 "질문 종료" 버튼 클릭
+
+### 학생
+
+1. **QR 스캔**: 교사가 공유한 QR 코드 스캔 또는 링크 클릭
+2. **정보 입력**: 번호와 닉네임 입력 (익명 투표는 불필요)
+3. **응답 작성**:
+   - 주관식: 텍스트 입력 또는 그림 그리기
+   - 투표: 항목 선택
+4. **제출**: "제출하기" 버튼 클릭
+5. **완료**: 제출 완료 메시지 확인
+
+## 프로젝트 구조
 
 ```
 student-feedback/
 ├── src/
-│   ├── components/        # Reusable UI components
+│   ├── components/      # 재사용 가능한 컴포넌트
 │   │   ├── QRCodeDisplay.tsx
-│   │   ├── DrawingCanvas.tsx
-│   │   ├── WordCloudModal.tsx
-│   │   └── ...
-│   ├── pages/            # Route pages
+│   │   └── DrawingCanvas.tsx
+│   ├── pages/          # 페이지 컴포넌트
 │   │   ├── LoginPage.tsx
 │   │   ├── DashboardPage.tsx
 │   │   ├── NewQuestionPage.tsx
 │   │   ├── QuestionDetailPage.tsx
 │   │   └── StudentResponsePage.tsx
-│   ├── lib/              # Utilities and configuration
-│   │   ├── supabase.ts   # Supabase client
-│   │   ├── store.ts      # Zustand store
-│   │   └── utils.ts
-│   └── App.tsx
-└── package.json
+│   ├── lib/            # 라이브러리 설정
+│   │   ├── supabase.ts
+│   │   └── store.ts
+│   ├── types/          # TypeScript 타입 정의
+│   │   └── index.ts
+│   ├── App.tsx         # 라우팅 설정
+│   ├── main.tsx
+│   └── index.css
+├── .env.example        # 환경 변수 예시
+├── SUPABASE_SETUP.md   # Supabase 설정 가이드
+└── README.md
 ```
 
-## Getting Started
+## 데이터 모델
 
-### Prerequisites
+### Questions (질문)
+- `id`: UUID (Primary Key)
+- `teacher_id`: 교사 ID
+- `teacher_name`: 교사 이름
+- `type`: 'text' | 'poll'
+- `content`: 질문 내용 (최대 100자)
+- `poll_options`: 투표 항목 배열
+- `allow_multiple`: 복수 선택 허용 여부
+- `is_anonymous`: 익명 투표 여부
+- `status`: 'active' | 'closed' | 'deleted'
+- `created_at`: 생성 시간
+- `closed_at`: 종료 시간
 
-- Node.js (v18 or higher)
-- Supabase account
+### Responses (응답)
+- `id`: UUID (Primary Key)
+- `question_id`: 질문 ID (Foreign Key)
+- `student_number`: 학생 번호
+- `nickname`: 닉네임
+- `text_answer`: 텍스트 답변 (최대 100자)
+- `drawing_data`: 그림 데이터 (base64)
+- `poll_answer`: 투표 답변 배열
+- `submitted_at`: 제출 시간
 
-### Installation
+## 제약사항
 
-1. Clone the repository
-```bash
-git clone https://github.com/suhmieum/vivasam_qr.git
-cd vivasam_qr/student-feedback
-```
+- 교사는 동시에 1개의 질문만 활성화 가능
+- 동일 번호+닉네임 조합으로 중복 제출 불가
+- 질문 내용 최대 100자
+- 투표 항목 최대 5개
+- 텍스트 답변 최대 100자
 
-2. Install dependencies
-```bash
-npm install
-```
+## 향후 개발 계획 (Phase 2)
 
-3. Set up environment variables
+- [ ] 결과 데이터 다운로드 (CSV/Excel)
+- [ ] 외부 연동 기능 (비바샘 API)
+- [ ] 질문 템플릿 제공
+- [ ] 관리자/사용자 관리 기능
+- [ ] 응답 통계 대시보드
+- [ ] 다크모드 지원
 
-Copy `.env.example` to `.env` and fill in your Supabase credentials:
-```bash
-cp .env.example .env
-```
+## 라이선스
 
-Edit `.env`:
-```
-VITE_SUPABASE_URL=your_supabase_project_url
-VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
-```
+MIT
 
-4. Run the development server
-```bash
-npm run dev
-```
+## 문의
 
-5. Build for production
-```bash
-npm run build
-```
-
-## Database Schema
-
-The application uses Supabase with the following main tables:
-
-- `teachers`: Teacher accounts
-- `questions`: Question definitions (type, content, options)
-- `responses`: Student responses
-- `drawings`: Canvas drawing data (for drawing-type questions)
-
-Realtime subscriptions are used for live updates on the dashboard and question detail pages.
-
-## Key Features Implementation
-
-### Mobile Drawing Canvas
-- Touch-optimized coordinate mapping for accurate drawing on scaled canvases
-- Prevents scrolling during drawing with `preventDefault`
-- Line smoothing for better visual quality
-
-### Realtime Updates
-- Supabase Realtime channels for instant response updates
-- Automatic UI refresh when students submit answers
-- Connection status monitoring
-
-### Word Cloud
-- Dynamic text response visualization
-- Font size based on frequency
-- Modal display for better readability
-
-## Browser Support
-
-- Chrome/Edge (latest)
-- Safari (latest)
-- Mobile browsers (iOS Safari, Chrome Mobile)
-
-## License
-
-Private project for Vivasam
-
-## Author
-
-suhmieum
+이슈가 있거나 기능 제안이 있으시면 GitHub Issues를 이용해주세요.
